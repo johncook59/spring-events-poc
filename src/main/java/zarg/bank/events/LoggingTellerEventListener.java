@@ -9,8 +9,13 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Slf4j
 class LoggingTellerEventListener {
 
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMPLETION)
-    void handleEvent(TellerEvent event) {
-        log.info(event.toString());
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    void handleCommittedEvent(TellerEvent event) {
+        log.info("Committed {}", event);
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_ROLLBACK)
+    void handleRolledBackEvent(TellerEvent event) {
+        log.error("Rolled back transaction for {}", event);
     }
 }

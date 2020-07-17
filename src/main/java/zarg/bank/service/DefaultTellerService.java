@@ -2,9 +2,7 @@ package zarg.bank.service;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
 import zarg.bank.dao.AccountDao;
 import zarg.bank.domain.Account;
 import zarg.bank.events.CreditEvent;
@@ -12,9 +10,10 @@ import zarg.bank.events.CreditFailedEvent;
 import zarg.bank.events.DebitEvent;
 import zarg.bank.events.DebitFailedEvent;
 
+import javax.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 
-@Service
+@Service("DefaultTellerService")
 @Transactional
 class DefaultTellerService implements TellerService {
 
@@ -26,12 +25,9 @@ class DefaultTellerService implements TellerService {
         this.publisher = publisher;
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
     @Override
     public void credit(String accountBid, BigDecimal amount) {
         try {
-            Assert.isTrue(amount.doubleValue() > 0, "Invalid amount");
-
             updateBalance(accountBid, amount);
             publisher.publishEvent(new CreditEvent(accountBid, amount));
 
@@ -41,12 +37,9 @@ class DefaultTellerService implements TellerService {
         }
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
     @Override
     public void debit(String accountBid, BigDecimal amount) {
         try {
-            Assert.isTrue(amount.doubleValue() > 0, "Invalid amount");
-
             updateBalance(accountBid, amount.negate());
             publisher.publishEvent(new DebitEvent(accountBid, amount));
 
@@ -56,18 +49,17 @@ class DefaultTellerService implements TellerService {
         }
     }
 
-    @Transactional(propagation = Propagation.REQUIRED, readOnly = true)
+    @Transactional(readOnly = true)
     @Override
     public BigDecimal balance(String accountBid) {
-        return findAccount(accountBid).getBalance();
-    }
-
-    private Account findAccount(String accountBid) {
-        return accountDao.findByBid(accountBid);
+        return accountDao.findByBid(accountBid)
+                .orElseThrow(() -> new EntityNotFoundException(accountBid))
+                .getBalance();
     }
 
     private void updateBalance(String accountBid, BigDecimal amount) {
-        Account account = findAccount(accountBid);
+        Account account = accountDao.findByBid(accountBid)
+                .orElseThrow(() -> new EntityNotFoundException(accountBid));
         account.setBalance(account.getBalance().add(amount));
         accountDao.save(account);
     }

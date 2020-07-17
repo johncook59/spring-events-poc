@@ -11,6 +11,11 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @Getter
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class CreditRequest {
+public class BalanceUpdateRequest {
+
+    public enum Direction {CREDIT, DEBIT}
+
+    private Direction direction;
+
     private BigDecimal amount;
 }

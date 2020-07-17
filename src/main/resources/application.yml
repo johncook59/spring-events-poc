@@ -17,3 +17,6 @@ spring:
 server:
   servlet:
     context-path: /bank
+
+async:
+  shards: 25

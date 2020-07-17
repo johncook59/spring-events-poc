@@ -1,10 +1,11 @@
 package zarg.bank.controllers;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -16,35 +17,35 @@ import java.math.BigDecimal;
 @RestController
 @RequestMapping("/teller")
 @Slf4j
-public class TellerController {
+class TellerController {
 
     private final TellerService teller;
 
-    public TellerController(TellerService teller) {
+    public TellerController(@Qualifier("ShardingTellerService") TellerService teller) {
         this.teller = teller;
     }
 
     @GetMapping(value = "/{accountBid}/balance")
     @ResponseBody
     public BigDecimal balance(@PathVariable("accountBid") String accountBid) {
-        log.debug("Balance for account " + accountBid);
+        log.debug("Requesting balance for account {}", accountBid);
         return teller.balance(accountBid);
     }
 
-    @PostMapping(value = "/{accountBid}/credit")
+    @PatchMapping(value = "/{accountBid}")
     @ResponseBody
-    public void credit(@PathVariable("accountBid") String accountBid, @RequestBody CreditRequest request) {
-        log.debug("Crediting " + request.getAmount() + " to account " + accountBid);
+    public void update(@PathVariable("accountBid") String accountBid, @RequestBody BalanceUpdateRequest request) {
+        log.debug("Requesting {} {} to account {}", request.getDirection(), request.getAmount(), accountBid);
         validateAmount(request.getAmount());
-        teller.credit(accountBid, request.getAmount());
-    }
 
-    @PostMapping(value = "/{accountBid}/debit")
-    @ResponseBody
-    public void debit(@PathVariable("accountBid") String accountBid, @RequestBody DebitRequest request) {
-        log.debug("Debiting " + request.getAmount() + " to account " + accountBid);
-        validateAmount(request.getAmount());
-        teller.debit(accountBid, request.getAmount());
+        switch (request.getDirection()) {
+            case CREDIT:
+                teller.credit(accountBid, request.getAmount());
+                break;
+            case DEBIT:
+                teller.debit(accountBid, request.getAmount());
+                break;
+        }
     }
 
     private void validateAmount(BigDecimal amount) {
