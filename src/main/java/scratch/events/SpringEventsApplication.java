@@ -1,13 +1,13 @@
-package zarg.debitcredit;
+package scratch.events;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class DebitCreditApplication {
+public class SpringEventsApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(DebitCreditApplication.class, args);
+        SpringApplication.run(SpringEventsApplication.class, args);
     }
 
 }
