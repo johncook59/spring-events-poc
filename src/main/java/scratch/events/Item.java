@@ -8,12 +8,12 @@ import javax.persistence.Table;
 import javax.persistence.Version;
 
 @Entity
-@Table(name = "thing")
-public class Thing {
+@Table(name = "item")
+public class Item {
 
     @Id
     @GeneratedValue
-    private int id;
+    private Long id;
 
     @Version
     private int version = 0;
@@ -23,13 +23,13 @@ public class Thing {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("Thing{");
-        sb.append("name='").append(name).append('\'');
-        sb.append('}');
-        return sb.toString();
+        return new StringBuilder("Item{")
+                .append("name='").append(name).append('\'')
+                .append('}')
+                .toString();
     }
 
-    public int getId() {
+    public Long getId() {
         return id;
     }
 
@@ -37,7 +37,7 @@ public class Thing {
         return name;
     }
 
-    public Thing setName(String name) {
+    public Item setName(String name) {
         this.name = name;
         return this;
     }
