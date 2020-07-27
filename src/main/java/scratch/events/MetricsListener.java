@@ -9,9 +9,8 @@ import org.springframework.transaction.event.TransactionalEventListener;
 public class MetricsListener {
 
     private static final String ITEM_METRIC = "item";
-    private static final String OPERATION_UPDATE = ".update";
-    private static final String OPERATION_INSERT = ".insert";
-    private static final String OPERATION_DELETE = ".insert";
+    private static final String OPERATION_UPDATE = ITEM_METRIC + ".update";
+    private static final String OPERATION_INSERT = ITEM_METRIC + ".insert";
     private static final String SUCCESS = ".success";
     private static final String ROLLEDBACK = ".rolledback";
 
@@ -22,28 +21,22 @@ public class MetricsListener {
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handleItemChangeCommitEvent(ItemEvent event) {
-        String metric = buildMetricName(event) + SUCCESS;
-        statsd.incrementCounter(metric);
+    public void handleCommittedEvent(ItemCreatedEvent event) {
+        statsd.incrementCounter(OPERATION_INSERT + SUCCESS);
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handleCommittedEvent(ItemUpdatedEvent event) {
+        statsd.incrementCounter(OPERATION_UPDATE + SUCCESS);
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_ROLLBACK)
-    public void handleItemChangeRolledBackEvent(ItemEvent event) {
-        String metric = buildMetricName(event) + ROLLEDBACK;
-        statsd.incrementCounter(metric);
+    public void handleRolledBackEvent(ItemCreatedEvent event) {
+        statsd.incrementCounter(OPERATION_INSERT + ROLLEDBACK);
     }
 
-    private static String buildMetricName(ItemEvent event) {
-        String name = ITEM_METRIC;
-        switch (event.getEvent()) {
-            case CREATED:
-                return name + OPERATION_INSERT;
-            case UPDATED:
-                return name + OPERATION_UPDATE;
-            case DELETED:
-                return name + OPERATION_DELETE;
-        }
-
-        throw new IllegalArgumentException("Null Event value");
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_ROLLBACK)
+    public void handleRolledBackEvent(ItemUpdatedEvent event) {
+        statsd.incrementCounter(OPERATION_UPDATE + ROLLEDBACK);
     }
 }

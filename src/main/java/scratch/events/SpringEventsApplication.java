@@ -22,7 +22,7 @@ public class SpringEventsApplication {
     @PreDestroy
     void onShutdown() {
         try {
-            Thread.sleep(2000);
+            Thread.sleep(2000); // Let the event publisher finish
             statsDClient.close();
         } catch (InterruptedException ignored) {
         }

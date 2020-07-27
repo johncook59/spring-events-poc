@@ -56,8 +56,10 @@ public class ItemServiceTest {
             return null;
         });
 
-        verify(eventListener).handleCommittedEvent(any());
-        verify(eventListener, never()).handleRolledBackEvent(any());
+        verify(eventListener).handleCommittedEvent(any(ItemCreatedEvent.class));
+        verify(eventListener, never()).handleCommittedEvent(any(ItemUpdatedEvent.class));
+        verify(eventListener, never()).handleRolledBackEvent(any(ItemCreatedEvent.class));
+        verify(eventListener, never()).handleRolledBackEvent(any(ItemUpdatedEvent.class));
     }
 
     @Test
@@ -74,8 +76,10 @@ public class ItemServiceTest {
             return null;
         });
 
-        verify(eventListener).handleCommittedEvent(any());
-        verify(eventListener, never()).handleRolledBackEvent(any());
+        verify(eventListener, never()).handleCommittedEvent(any(ItemCreatedEvent.class));
+        verify(eventListener).handleCommittedEvent(any(ItemUpdatedEvent.class));
+        verify(eventListener, never()).handleRolledBackEvent(any(ItemCreatedEvent.class));
+        verify(eventListener, never()).handleRolledBackEvent(any(ItemUpdatedEvent.class));
     }
 
     @Test
@@ -95,8 +99,10 @@ public class ItemServiceTest {
         } catch (Exception ignore) {
         }
 
-        verify(eventListener, never()).handleCommittedEvent(any());
-        verify(eventListener).handleRolledBackEvent(any());
+        verify(eventListener, never()).handleCommittedEvent(any(ItemCreatedEvent.class));
+        verify(eventListener, never()).handleCommittedEvent(any(ItemUpdatedEvent.class));
+        verify(eventListener).handleRolledBackEvent(any(ItemCreatedEvent.class));
+        verify(eventListener, never()).handleRolledBackEvent(any(ItemUpdatedEvent.class));
     }
 
     @Test
@@ -117,19 +123,29 @@ public class ItemServiceTest {
         } catch (Exception ignore) {
         }
 
-        verify(eventListener, never()).handleCommittedEvent(any());
-        verify(eventListener).handleRolledBackEvent(any());
+        verify(eventListener, never()).handleCommittedEvent(any(ItemCreatedEvent.class));
+        verify(eventListener, never()).handleCommittedEvent(any(ItemUpdatedEvent.class));
+        verify(eventListener, never()).handleRolledBackEvent(any(ItemCreatedEvent.class));
+        verify(eventListener).handleRolledBackEvent(any(ItemUpdatedEvent.class));
     }
 
     @Component
     static class MockingEventListener {
 
         @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-        public void handleCommittedEvent(ItemEvent event) {
+        public void handleCommittedEvent(ItemCreatedEvent event) {
+        }
+
+        @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+        public void handleCommittedEvent(ItemUpdatedEvent event) {
         }
 
         @TransactionalEventListener(phase = TransactionPhase.AFTER_ROLLBACK)
-        public void handleRolledBackEvent(ItemEvent event) {
+        public void handleRolledBackEvent(ItemCreatedEvent event) {
+        }
+
+        @TransactionalEventListener(phase = TransactionPhase.AFTER_ROLLBACK)
+        public void handleRolledBackEvent(ItemUpdatedEvent event) {
         }
     }
 }
